@@ -265,8 +265,14 @@ type FactorTerm struct {
 	Power uint32 // Term == Prime^Power
 }
 
+type FactorTerm64 struct {
+	Prime uint64
+	Power uint64
+}
+
 // FactorTerms represent a factorization of an integer
 type FactorTerms []FactorTerm
+type FactorTerms64 []FactorTerm64
 
 // FactorInt returns prime factorization of n > 1 or nil otherwise.
 // Resulting factors are ordered by Prime. Typical run time is few µs.
@@ -299,6 +305,39 @@ func FactorInt(n uint32) (f FactorTerms) {
 	}
 	if n != 1 {
 		f[w] = FactorTerm{n, 1}
+		w++
+	}
+	return f[:w]
+}
+
+func FactorInt64(n uint64) (f FactorTerms64) {
+	switch {
+	case n < 2:
+		return
+	case IsPrimeUint64(n):
+		return []FactorTerm64{{n, 1}}
+	}
+
+	f, w := make([]FactorTerm64, 9), 0
+	for p :=2; p < len(primes16); p+= int(primes16[p]) {
+		if uint64(p * p) > n {
+			break
+		}
+		power := uint64(0)
+		for n % uint64(p) == 0 {
+			n /= uint64(p)
+			power ++
+		}
+		if power != 0 {
+			f[w] = FactorTerm64{uint64(p), power}
+			w++
+		}
+		if n == 1 {
+			break
+		}
+	}
+	if n != 1 {
+		f[w] = FactorTerm64{n, 1}
 		w++
 	}
 	return f[:w]
